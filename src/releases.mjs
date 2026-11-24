@@ -27,3 +27,8 @@ export function summarize(release, today) {
 export function sortByTarget(releases) {
   return [...releases].sort((a, b) => a.target.localeCompare(b.target));
 }
+
+/** Blocked releases first, then by target date. Does not mutate the input. */
+export function sortReleases(releases) {
+  return [...releases].sort((a, b) => Number(Boolean(b.blocked)) - Number(Boolean(a.blocked)) || a.target.localeCompare(b.target));
+}

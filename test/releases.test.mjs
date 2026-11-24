@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { progress, progressLabel, status, sortByTarget } from '../src/releases.mjs';
+import { progress, progressLabel, status, sortByTarget, sortReleases } from '../src/releases.mjs';
 
 const release = (done, total, target = '2026-12-31') => ({
   target,
@@ -35,4 +35,20 @@ test('empty checklist has 0 progress and is never ready', () => {
 test('progressLabel reads "N of M done" and handles empty checklists', () => {
   assert.equal(progressLabel(release(3, 5)), '3 of 5 done');
   assert.equal(progressLabel(release(0, 0)), 'No checklist yet');
+});
+
+test('sortReleases puts blocked releases first, then orders by target date', () => {
+  const input = [
+    { id: 'a', target: '2026-11-28' },
+    { id: 'b', target: '2026-12-20', blocked: true },
+    { id: 'c', target: '2026-12-01', blocked: true },
+    { id: 'd', target: '2026-11-26', blocked: false },
+  ];
+  assert.deepEqual(sortReleases(input).map((r) => r.id), ['c', 'b', 'd', 'a']);
+  assert.equal(input[0].id, 'a');
+});
+
+test('sortReleases treats a missing blocked flag as not blocked', () => {
+  const input = [{ id: 'a', target: '2026-11-01' }, { id: 'b', target: '2026-12-01', blocked: true }];
+  assert.deepEqual(sortReleases(input).map((r) => r.id), ['b', 'a']);
 });
