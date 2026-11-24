@@ -39,6 +39,14 @@ const pairs = [
 ];
 
 let failed = 0;
+// Transitions must be opt-out via prefers-reduced-motion.
+const reduced = css.match(/@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{([\s\S]*?\})\s*\}/);
+if (!reduced || !/\.bar span[^{]*\{[^}]*transition:\s*none/.test(reduced[1]) || !/\bbody\b[^{]*\{[^}]*transition:\s*none/.test(reduced[1])) {
+  failed++;
+  console.error('FAIL  @media (prefers-reduced-motion: reduce) missing or does not disable body/.bar span transitions');
+} else {
+  console.log('ok    prefers-reduced-motion disables progress-bar and theme transitions');
+}
 for (const key of Object.keys(mediaDark)) {
   if (mediaDark[key] !== themes.dark[key]) {
     failed++;
