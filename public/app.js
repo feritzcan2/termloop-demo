@@ -1,11 +1,12 @@
 const releasesEl = document.querySelector('#releases');
 const pagerEl = document.querySelector('#pager');
 const activityEl = document.querySelector('#activity');
+const searchEl = document.querySelector('#search');
 
 const labels = { ready: 'Ready', 'at-risk': 'At risk', 'on-track': 'On track' };
 
 async function loadReleases(page = 1) {
-  const data = await fetch(`/api/releases?page=${page}`).then((r) => r.json());
+  const data = await fetch(`/api/releases?page=${page}&q=${encodeURIComponent(searchEl.value)}`).then((r) => r.json());
   releasesEl.innerHTML = data.items.map((r) => `
     <li class="release">
       <div class="release-head">
@@ -25,6 +26,8 @@ pagerEl.addEventListener('click', (event) => {
   const page = event.target.dataset?.page;
   if (page) loadReleases(Number(page));
 });
+
+searchEl.addEventListener('input', () => loadReleases(1));
 
 async function loadActivity() {
   const entries = await fetch('/api/activity').then((r) => r.json());

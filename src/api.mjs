@@ -10,7 +10,9 @@ export function handle(method, url, today = new Date()) {
   const { pathname, searchParams } = new URL(url, 'http://localhost');
   if (pathname === '/api/releases') {
     const page = Number(searchParams.get('page') ?? 1);
-    const list = sortByTarget(releases).map((r) => summarize(r, today));
+    const query = (searchParams.get('q') ?? '').trim().toLowerCase();
+    const matches = releases.filter((r) => !query || `${r.name} ${r.owner}`.toLowerCase().includes(query));
+    const list = sortByTarget(matches).map((r) => summarize(r, today));
     return json(200, paginate(list, page));
   }
   const match = pathname.match(/^\/api\/releases\/([\w-]+)$/);
