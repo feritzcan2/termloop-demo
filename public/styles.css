@@ -79,3 +79,6 @@ body, .release, .badge, .bar, .bar span, .pager button, .theme, .theme label, .s
 @media (prefers-reduced-motion: reduce) {
   body, .release, .badge, .bar, .bar span, .pager button, .theme, .theme label, .search input { transition: none; }
 }
+.updated { padding: 0 40px 24px; color: var(--muted); font-size: 12px; }
+.updated p { margin: 0; }
+@media (max-width: 720px) { .updated { padding: 0 16px 16px; } }

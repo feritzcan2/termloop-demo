@@ -2,6 +2,7 @@ const releasesEl = document.querySelector('#releases');
 const pagerEl = document.querySelector('#pager');
 const activityEl = document.querySelector('#activity');
 const searchEl = document.querySelector('#search');
+const updatedEl = document.querySelector('#updated');
 
 const labels = { ready: 'Ready', 'at-risk': 'At risk', 'on-track': 'On track' };
 
@@ -30,9 +31,26 @@ pagerEl.addEventListener('click', (event) => {
 searchEl.addEventListener('input', () => loadReleases(1));
 
 async function loadActivity() {
-  const entries = await fetch('/api/activity').then((r) => r.json());
+  const footerEl = updatedEl.closest('footer');
+  let entries;
+  try {
+    const res = await fetch('/api/activity');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    entries = await res.json();
+  } catch {
+    footerEl.hidden = true;
+    return;
+  }
   activityEl.innerHTML = entries.map((e) => `<li><time datetime="${e.at}">${e.when}</time> ${e.text}</li>`).join('');
+  // /api/activity is sorted newest-first and `when` comes from relativeTime().
+  footerEl.hidden = entries.length === 0;
+  if (entries.length) {
+    updatedEl.dateTime = entries[0].at;
+    updatedEl.textContent = entries[0].when;
+    footerEl.title = new Date(entries[0].at).toLocaleString();
+  }
 }
 
 loadReleases();
 loadActivity();
+setInterval(loadActivity, 60_000); // keep relative times from going stale
