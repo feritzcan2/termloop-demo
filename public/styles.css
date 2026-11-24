@@ -32,3 +32,5 @@ h2 { font-size: 16px; margin: 0 0 12px; }
 @media (max-width: 720px) { main { grid-template-columns: 1fr; padding: 16px; } header { padding: 24px 16px 0; } }
 .search { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; color: var(--muted); }
 .search input { flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font: inherit; }
+.owner-filter { display: inline-flex; gap: 8px; align-items: center; margin-top: 12px; color: var(--muted); }
+.owner-filter select { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font: inherit; }
