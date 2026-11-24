@@ -25,3 +25,8 @@ test('non-GET requests are rejected', () => {
 test('unknown paths fall through to static files', () => {
   assert.equal(handle('GET', '/index.html'), null);
 });
+
+test('releases can be searched by owner', () => {
+  const { body } = get('/api/releases?q=maya');
+  assert.equal(body.total, 2);
+});
