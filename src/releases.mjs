@@ -6,6 +6,13 @@ export function progress(release) {
   return Math.round((done / items.length) * 100);
 }
 
+/** Text label such as "3 of 5 done"; empty checklists read "No checklist yet". */
+export function progressLabel(release) {
+  const total = release.checklist.length;
+  if (total === 0) return 'No checklist yet';
+  return `${release.checklist.filter((item) => item.done).length} of ${total} done`;
+}
+
 /** 'ready' when every item is done, 'at-risk' when the target is within 3 days, else 'on-track'. */
 export function status(release, today = new Date()) {
   if (release.checklist.length > 0 && progress(release) === 100) return 'ready';
@@ -14,7 +21,7 @@ export function status(release, today = new Date()) {
 }
 
 export function summarize(release, today) {
-  return { ...release, progress: progress(release), status: status(release, today) };
+  return { ...release, progress: progress(release), progressLabel: progressLabel(release), status: status(release, today) };
 }
 
 export function sortByTarget(releases) {

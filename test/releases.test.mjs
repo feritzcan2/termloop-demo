@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { progress, status, sortByTarget } from '../src/releases.mjs';
+import { progress, progressLabel, status, sortByTarget } from '../src/releases.mjs';
 
 const release = (done, total, target = '2026-12-31') => ({
   target,
@@ -30,4 +30,9 @@ test('sortByTarget orders by target date without mutating input', () => {
 test('empty checklist has 0 progress and is never ready', () => {
   assert.equal(progress(release(0, 0)), 0);
   assert.notEqual(status(release(0, 0)), 'ready');
+});
+
+test('progressLabel reads "N of M done" and handles empty checklists', () => {
+  assert.equal(progressLabel(release(3, 5)), '3 of 5 done');
+  assert.equal(progressLabel(release(0, 0)), 'No checklist yet');
 });

@@ -14,7 +14,7 @@ async function loadReleases(page = 1) {
         <span class="badge ${r.status}">${labels[r.status]}</span>
       </div>
       <div class="meta">${r.owner} · target ${r.target}</div>
-      ${r.checklist.length === 0 ? '<div class="meta empty-checklist">No checklist yet</div>' : `<div class="bar" role="progressbar" aria-valuenow="${r.progress}" aria-valuemin="0" aria-valuemax="100" aria-label="${r.name} checklist">
+      ${r.checklist.length === 0 ? `<div class="meta empty-checklist">${r.progressLabel}</div>` : `<div class="meta progress-label">${r.progressLabel}</div><div class="bar" role="progressbar" aria-valuenow="${r.progress}" aria-valuemin="0" aria-valuemax="100" aria-label="${r.name} checklist">
         <span style="width:${r.progress}%"></span>
       </div>`}
     </li>`).join('');
