@@ -5,7 +5,8 @@ import { sortByTarget, summarize } from './releases.mjs';
 
 const json = (status, body) => ({ status, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
-export function handle(method, url, today = new Date()) {
+// health() supplies runtime facts (uptime, limiter stats) so this module stays free of I/O.
+export function handle(method, url, today = new Date(), { health = () => ({}) } = {}) {
   if (method !== 'GET') return json(405, { error: 'Method not allowed' });
   const { pathname, searchParams } = new URL(url, 'http://localhost');
   if (pathname === '/api/releases') {
@@ -20,6 +21,7 @@ export function handle(method, url, today = new Date()) {
     const release = releases.find((r) => r.id === match[1]);
     return release ? json(200, summarize(release, today)) : json(404, { error: 'Release not found' });
   }
+  if (pathname === '/api/health') return json(200, { status: 'ok', ...health() });
   if (pathname === '/api/activity') return json(200, formatActivity(activity));
   return null;
 }

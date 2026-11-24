@@ -30,3 +30,18 @@ test('releases can be searched by owner', () => {
   const { body } = get('/api/releases?q=maya');
   assert.equal(body.total, 2);
 });
+
+test('GET /api/health returns status, uptime and limiter stats from the provider', () => {
+  const health = () => ({ uptimeSeconds: 42, limiter: { activeClients: 3, blocked: 7 } });
+  const res = handle('GET', '/api/health', new Date(), { health });
+  assert.equal(res.status, 200);
+  assert.deepEqual(JSON.parse(res.body), {
+    status: 'ok',
+    uptimeSeconds: 42,
+    limiter: { activeClients: 3, blocked: 7 },
+  });
+});
+
+test('GET /api/health works without a provider', () => {
+  assert.deepEqual(get('/api/health').body, { status: 'ok' });
+});
