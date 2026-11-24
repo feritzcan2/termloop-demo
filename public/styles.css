@@ -1,0 +1,32 @@
+:root {
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --text: #1d1d1b;
+  --muted: #6b6b66;
+  --accent: #d9822b;
+  --ok: #2f8f5b;
+  --warn: #c4472d;
+  --border: #e4e2dc;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--text); }
+header { padding: 32px 40px 8px; }
+h1 { margin: 0; font-size: 28px; }
+header p { margin: 4px 0 0; color: var(--muted); }
+main { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; padding: 24px 40px; }
+h2 { font-size: 16px; margin: 0 0 12px; }
+.releases, .activity { list-style: none; margin: 0; padding: 0; }
+.release { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+.release-head { display: flex; align-items: center; gap: 8px; }
+.version, .meta { color: var(--muted); font-size: 13px; }
+.badge { margin-left: auto; font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--border); }
+.badge.ready { background: #dff1e6; color: var(--ok); }
+.badge.at-risk { background: #f8e0d9; color: var(--warn); }
+.bar { height: 6px; background: var(--border); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--accent); }
+.pager { display: flex; gap: 6px; }
+.pager button { border: 1px solid var(--border); background: var(--surface); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.pager button[aria-current] { background: var(--text); color: var(--bg); }
+.activity li { padding: 8px 0; border-bottom: 1px solid var(--border); }
+.activity time { display: block; color: var(--muted); font-size: 12px; }
+@media (max-width: 720px) { main { grid-template-columns: 1fr; padding: 16px; } header { padding: 24px 16px 0; } }

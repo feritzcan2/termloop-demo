@@ -1,0 +1,13 @@
+{
+  "name": "launchpad",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A small release dashboard used to demo TermLoop.",
+  "type": "module",
+  "packageManager": "pnpm@10.14.0",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "node server.mjs",
+    "test": "node --test test/*.test.mjs"
+  }
+}
