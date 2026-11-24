@@ -1,13 +1,14 @@
 /** Percentage of completed checklist items, 0-100. */
 export function progress(release) {
   const items = release.checklist;
+  if (items.length === 0) return 0;
   const done = items.filter((item) => item.done).length;
   return Math.round((done / items.length) * 100);
 }
 
 /** 'ready' when every item is done, 'at-risk' when the target is within 3 days, else 'on-track'. */
 export function status(release, today = new Date()) {
-  if (progress(release) === 100) return 'ready';
+  if (release.checklist.length > 0 && progress(release) === 100) return 'ready';
   const days = (Date.parse(release.target) - today.getTime()) / 86_400_000;
   return days <= 3 ? 'at-risk' : 'on-track';
 }

@@ -26,3 +26,8 @@ test('sortByTarget orders by target date without mutating input', () => {
   assert.deepEqual(sortByTarget(input).map((r) => r.target), ['2026-11-28', '2026-12-09']);
   assert.equal(input[0].target, '2026-12-09');
 });
+
+test('empty checklist has 0 progress and is never ready', () => {
+  assert.equal(progress(release(0, 0)), 0);
+  assert.notEqual(status(release(0, 0)), 'ready');
+});
