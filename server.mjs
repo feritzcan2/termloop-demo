@@ -8,7 +8,7 @@ const root = new URL('./public/', import.meta.url).pathname;
 const port = Number(process.env.PORT ?? 4173);
 
 createServer(async (req, res) => {
-  const api = handle(req.method, req.url, new Date(), req.socket.remoteAddress);
+  const api = handle(req.method, req.url);
   if (api) {
     res.writeHead(api.status, api.headers).end(api.body);
     return;

@@ -2,22 +2,10 @@ import { activity, releases } from './data.mjs';
 import { formatActivity } from './activity.mjs';
 import { paginate } from './paginate.mjs';
 import { sortByTarget, summarize } from './releases.mjs';
-import { createRateLimiter } from './ratelimit.mjs';
-
-const defaultLimiter = createRateLimiter();
 
 const json = (status, body) => ({ status, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
-export function handle(method, url, today = new Date(), client = 'anonymous', limiter = defaultLimiter) {
-  const res = route(method, url, today);
-  if (!res) return res;
-  const { limit, remaining } = limiter.hit(client);
-  res.headers['x-ratelimit-limit'] = String(limit);
-  res.headers['x-ratelimit-remaining'] = String(remaining);
-  return res;
-}
-
-function route(method, url, today) {
+export function handle(method, url, today = new Date()) {
   if (method !== 'GET') return json(405, { error: 'Method not allowed' });
   const { pathname, searchParams } = new URL(url, 'http://localhost');
   if (pathname === '/api/releases') {
