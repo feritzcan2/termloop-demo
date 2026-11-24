@@ -19,6 +19,8 @@ Behind a reverse proxy, every request would share the proxy's address. Set `TRUS
 TRUST_PROXY=1 pnpm dev
 ```
 
+`GET /api/health` is exempt from the limit and returns `{ status, uptimeSeconds, limiter: { activeClients, blocked } }`, where `blocked` counts requests rejected since start.
+
 ## Branches
 
 - `main`: released versions

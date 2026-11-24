@@ -1,8 +1,9 @@
 // Fixed-window, in-memory rate limiter. No I/O; the clock is injectable.
 export function createRateLimiter({ limit = 60, windowMs = 60_000 } = {}) {
   const hits = new Map(); // key -> { start, count }
+  let blocked = 0;
 
-  return function check(key, now = Date.now()) {
+  function check(key, now = Date.now()) {
     // Drop expired windows so the map cannot grow without bound.
     for (const [k, w] of hits) if (now - w.start >= windowMs) hits.delete(k);
 
@@ -13,13 +14,30 @@ export function createRateLimiter({ limit = 60, windowMs = 60_000 } = {}) {
     }
     w.count += 1;
     const retryAfter = Math.max(1, Math.ceil((w.start + windowMs - now) / 1000));
+    const allowed = w.count <= limit;
+    if (!allowed) blocked += 1;
     return {
-      allowed: w.count <= limit,
+      allowed,
       limit,
       remaining: Math.max(0, limit - w.count),
       retryAfter,
     };
+  }
+
+  // activeClients counts clients with a live window; blocked is the total of
+  // requests rejected since start.
+  check.stats = (now = Date.now()) => {
+    let activeClients = 0;
+    for (const w of hits.values()) if (now - w.start < windowMs) activeClients += 1;
+    return { activeClients, blocked };
   };
+  return check;
+}
+
+// Only /api/* is limited, and the health check is exempt so monitors never
+// consume (or get denied) client quota.
+export function isRateLimited(pathname) {
+  return pathname.startsWith('/api/') && pathname !== '/api/health';
 }
 
 // Headers sent on every /api response (Retry-After is added only when blocked).

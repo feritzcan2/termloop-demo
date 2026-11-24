@@ -2,7 +2,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 import { handle } from './src/api.mjs';
-import { clientKey, createRateLimiter, rateLimitHeaders } from './src/rate-limit.mjs';
+import { clientKey, createRateLimiter, isRateLimited, rateLimitHeaders } from './src/rate-limit.mjs';
 
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
 const root = new URL('./public/', import.meta.url).pathname;
@@ -12,15 +12,18 @@ const trustProxy = process.env.TRUST_PROXY === '1';
 const limiter = createRateLimiter({ limit: 60, windowMs: 60_000 });
 
 createServer(async (req, res) => {
-  const isApi = req.url.startsWith('/api/');
-  const limitHeaders = isApi ? rateLimitHeaders(limiter(clientKey({ headers: req.headers, remoteAddress: req.socket.remoteAddress }, { trustProxy }))) : {};
-  if (isApi && limitHeaders['retry-after']) {
+  const pathname = req.url.split('?')[0];
+  const limited = isRateLimited(pathname);
+  const limitHeaders = limited ? rateLimitHeaders(limiter(clientKey({ headers: req.headers, remoteAddress: req.socket.remoteAddress }, { trustProxy }))) : {};
+  if (limited && limitHeaders['retry-after']) {
     res
       .writeHead(429, { 'content-type': 'application/json', ...limitHeaders })
       .end(JSON.stringify({ error: 'Too many requests' }));
     return;
   }
-  const api = handle(req.method, req.url);
+  const api = handle(req.method, req.url, new Date(), {
+    health: () => ({ uptimeSeconds: Math.round(process.uptime()), limiter: limiter.stats() }),
+  });
   if (api) {
     res.writeHead(api.status, { ...api.headers, ...limitHeaders }).end(api.body);
     return;

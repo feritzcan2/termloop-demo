@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { clientKey, createRateLimiter, rateLimitHeaders } from '../src/rate-limit.mjs';
+import { clientKey, createRateLimiter, isRateLimited, rateLimitHeaders } from '../src/rate-limit.mjs';
 
 test('allows 60 requests then blocks the 61st', () => {
   const check = createRateLimiter();
@@ -68,4 +68,30 @@ test('spoofing X-Forwarded-For cannot dodge the limit when untrusted', () => {
   const b = { headers: { 'x-forwarded-for': '3.3.3.3' }, remoteAddress: '10.0.0.1' };
   check(clientKey(a), 0);
   assert.equal(check(clientKey(b), 0).allowed, false);
+});
+
+test('stats report active clients and total blocked requests', () => {
+  const check = createRateLimiter({ limit: 1 });
+  assert.deepEqual(check.stats(0), { activeClients: 0, blocked: 0 });
+  check('a', 0);
+  check('a', 0); // blocked
+  check('a', 0); // blocked
+  check('b', 0);
+  assert.deepEqual(check.stats(0), { activeClients: 2, blocked: 2 });
+  // Expired windows are no longer active; blocked is cumulative.
+  assert.deepEqual(check.stats(60_000), { activeClients: 0, blocked: 2 });
+});
+
+test('/api/health is exempt from rate limiting; other /api paths and static files behave', () => {
+  assert.equal(isRateLimited('/api/health'), false);
+  assert.equal(isRateLimited('/api/releases'), true);
+  assert.equal(isRateLimited('/api/activity'), true);
+  assert.equal(isRateLimited('/index.html'), false);
+});
+
+test('exempt health checks never consume quota', () => {
+  const check = createRateLimiter({ limit: 1 });
+  for (let i = 0; i < 100; i++) if (isRateLimited('/api/health')) check('a', 0);
+  assert.equal(check('a', 0).allowed, true);
+  assert.equal(check.stats(0).blocked, 0);
 });
