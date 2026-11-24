@@ -15,8 +15,19 @@ export function createRateLimiter({ limit = 60, windowMs = 60_000 } = {}) {
     const retryAfter = Math.max(1, Math.ceil((w.start + windowMs - now) / 1000));
     return {
       allowed: w.count <= limit,
+      limit,
       remaining: Math.max(0, limit - w.count),
       retryAfter,
     };
   };
+}
+
+// Headers sent on every /api response (Retry-After is added only when blocked).
+export function rateLimitHeaders(verdict) {
+  const headers = {
+    'x-ratelimit-limit': String(verdict.limit),
+    'x-ratelimit-remaining': String(verdict.remaining),
+  };
+  if (!verdict.allowed) headers['retry-after'] = String(verdict.retryAfter);
+  return headers;
 }
