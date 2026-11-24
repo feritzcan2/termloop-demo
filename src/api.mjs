@@ -13,7 +13,7 @@ export function handle(method, url, today = new Date()) {
     const query = (searchParams.get('q') ?? '').trim().toLowerCase();
     const matches = releases.filter((r) => !query || `${r.name} ${r.owner}`.toLowerCase().includes(query));
     const list = sortByTarget(matches).map((r) => summarize(r, today));
-    return json(200, paginate(list, page));
+    return json(200, paginate(list, page, Number(searchParams.get('perPage') ?? 5)));
   }
   const match = pathname.match(/^\/api\/releases\/([\w-]+)$/);
   if (match) {

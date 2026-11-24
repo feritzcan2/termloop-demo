@@ -29,3 +29,16 @@ test('out-of-range pages clamp to the last page', () => {
 test('empty list yields a single empty page', () => {
   assert.deepEqual(paginate([], 1), { items: [], page: 1, pages: 1, total: 0 });
 });
+
+test('perPage is capped at 50', () => {
+  const many = Array.from({ length: 120 }, (_, i) => i);
+  const result = paginate(many, 1, 1000);
+  assert.equal(result.items.length, 50);
+  assert.equal(result.pages, 3);
+});
+
+test('invalid perPage falls back to the default of 5', () => {
+  assert.equal(paginate(items, 1, 0).items.length, 5);
+  assert.equal(paginate(items, 1, NaN).items.length, 5);
+  assert.equal(paginate(items, 1, 3).items.length, 3);
+});

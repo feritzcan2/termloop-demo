@@ -30,3 +30,11 @@ test('releases can be searched by owner', () => {
   const { body } = get('/api/releases?q=maya');
   assert.equal(body.total, 2);
 });
+
+test('perPage defaults to 5 and is capped at 50', () => {
+  assert.equal(get('/api/releases').body.items.length, Math.min(5, get('/api/releases').body.total));
+  const capped = get('/api/releases?perPage=1000').body;
+  assert.ok(capped.items.length <= 50);
+  assert.equal(capped.items.length, Math.min(capped.total, 50));
+  assert.equal(get('/api/releases?perPage=2').body.items.length, 2);
+});
