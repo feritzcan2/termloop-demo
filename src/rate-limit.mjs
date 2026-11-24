@@ -31,3 +31,17 @@ export function rateLimitHeaders(verdict) {
   if (!verdict.allowed) headers['retry-after'] = String(verdict.retryAfter);
   return headers;
 }
+
+// Picks the rate-limit key for a request. X-Forwarded-For is client-controlled,
+// so it is only honored when trustProxy is set (TRUST_PROXY=1, i.e. behind a
+// reverse proxy that appends the real peer address). The proxy appends to the
+// right, so the rightmost entry is the one that cannot be spoofed by a client.
+export function clientKey({ headers = {}, remoteAddress } = {}, { trustProxy = false } = {}) {
+  if (trustProxy) {
+    const xff = headers['x-forwarded-for'];
+    const value = Array.isArray(xff) ? xff.join(',') : xff;
+    const last = value?.split(',').map((s) => s.trim()).filter(Boolean).pop();
+    if (last) return last;
+  }
+  return remoteAddress ?? 'unknown';
+}

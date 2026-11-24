@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createRateLimiter, rateLimitHeaders } from '../src/rate-limit.mjs';
+import { clientKey, createRateLimiter, rateLimitHeaders } from '../src/rate-limit.mjs';
 
 test('allows 60 requests then blocks the 61st', () => {
   const check = createRateLimiter();
@@ -44,4 +44,28 @@ test('headers on a blocked request include Retry-After and remaining 0', () => {
   assert.equal(h['x-ratelimit-limit'], '1');
   assert.equal(h['x-ratelimit-remaining'], '0');
   assert.equal(h['retry-after'], '40');
+});
+
+const spoofed = { headers: { 'x-forwarded-for': '9.9.9.9, 2.2.2.2' }, remoteAddress: '10.0.0.1' };
+
+test('clientKey ignores X-Forwarded-For by default', () => {
+  assert.equal(clientKey(spoofed), '10.0.0.1');
+  assert.equal(clientKey(spoofed, { trustProxy: false }), '10.0.0.1');
+});
+
+test('clientKey uses the proxy-appended X-Forwarded-For entry when trusted', () => {
+  assert.equal(clientKey(spoofed, { trustProxy: true }), '2.2.2.2');
+});
+
+test('clientKey falls back to the socket address when trusted but header missing', () => {
+  assert.equal(clientKey({ headers: {}, remoteAddress: '10.0.0.1' }, { trustProxy: true }), '10.0.0.1');
+  assert.equal(clientKey({}, { trustProxy: true }), 'unknown');
+});
+
+test('spoofing X-Forwarded-For cannot dodge the limit when untrusted', () => {
+  const check = createRateLimiter({ limit: 1 });
+  const a = { headers: { 'x-forwarded-for': '1.1.1.1' }, remoteAddress: '10.0.0.1' };
+  const b = { headers: { 'x-forwarded-for': '3.3.3.3' }, remoteAddress: '10.0.0.1' };
+  check(clientKey(a), 0);
+  assert.equal(check(clientKey(b), 0).allowed, false);
 });

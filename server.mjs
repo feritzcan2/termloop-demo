@@ -2,17 +2,18 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 import { handle } from './src/api.mjs';
-import { createRateLimiter, rateLimitHeaders } from './src/rate-limit.mjs';
+import { clientKey, createRateLimiter, rateLimitHeaders } from './src/rate-limit.mjs';
 
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
 const root = new URL('./public/', import.meta.url).pathname;
 const port = Number(process.env.PORT ?? 4173);
 
+const trustProxy = process.env.TRUST_PROXY === '1';
 const limiter = createRateLimiter({ limit: 60, windowMs: 60_000 });
 
 createServer(async (req, res) => {
   const isApi = req.url.startsWith('/api/');
-  const limitHeaders = isApi ? rateLimitHeaders(limiter(req.socket.remoteAddress ?? 'unknown')) : {};
+  const limitHeaders = isApi ? rateLimitHeaders(limiter(clientKey({ headers: req.headers, remoteAddress: req.socket.remoteAddress }, { trustProxy }))) : {};
   if (isApi && limitHeaders['retry-after']) {
     res
       .writeHead(429, { 'content-type': 'application/json', ...limitHeaders })
