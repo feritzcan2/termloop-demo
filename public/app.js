@@ -1,13 +1,15 @@
 const releasesEl = document.querySelector('#releases');
-const pagerEl = document.querySelector('#pager');
+const loadMoreEl = document.querySelector('#load-more');
 const activityEl = document.querySelector('#activity');
 const searchEl = document.querySelector('#search');
 
 const labels = { ready: 'Ready', 'at-risk': 'At risk', 'on-track': 'On track' };
 
-async function loadReleases(page = 1) {
-  const data = await fetch(`/api/releases?page=${page}&q=${encodeURIComponent(searchEl.value)}`).then((r) => r.json());
-  releasesEl.innerHTML = data.items.map((r) => `
+let currentPage = 1;
+let totalPages = 1;
+let requestId = 0;
+
+const card = (r) => `
     <li class="release">
       <div class="release-head">
         <strong>${r.name}</strong> <span class="version">v${r.version}</span>
@@ -17,14 +19,24 @@ async function loadReleases(page = 1) {
       <div class="bar" role="progressbar" aria-valuenow="${r.progress}" aria-valuemin="0" aria-valuemax="100" aria-label="${r.name} checklist">
         <span style="width:${r.progress}%"></span>
       </div>
-    </li>`).join('');
-  pagerEl.innerHTML = Array.from({ length: data.pages }, (_, i) =>
-    `<button type="button" data-page="${i + 1}" ${i + 1 === data.page ? 'aria-current="page"' : ''}>${i + 1}</button>`).join('');
+    </li>`;
+
+async function loadReleases(page = 1) {
+  const id = ++requestId;
+  const data = await fetch(`/api/releases?page=${page}&perPage=5&q=${encodeURIComponent(searchEl.value)}`).then((r) => r.json());
+  if (id !== requestId) return;
+  const html = data.items.map(card).join('');
+  if (page === 1) releasesEl.innerHTML = html;
+  else releasesEl.insertAdjacentHTML('beforeend', html);
+  currentPage = data.page;
+  totalPages = data.pages;
+  loadMoreEl.hidden = currentPage >= totalPages;
+  loadMoreEl.disabled = false;
 }
 
-pagerEl.addEventListener('click', (event) => {
-  const page = event.target.dataset?.page;
-  if (page) loadReleases(Number(page));
+loadMoreEl.addEventListener('click', () => {
+  loadMoreEl.disabled = true;
+  loadReleases(currentPage + 1).catch(() => { loadMoreEl.disabled = false; });
 });
 
 searchEl.addEventListener('input', () => loadReleases(1));
