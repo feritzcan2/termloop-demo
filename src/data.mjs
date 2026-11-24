@@ -12,7 +12,7 @@ export const releases = [
     { id: 'c3', text: 'Store screenshots', done: true },
   ] },
   { id: 'r-140', name: 'Billing exports', version: '1.9.2', owner: 'Aiko', target: '2026-12-09', checklist: [] },
-  { id: 'r-139', name: 'Search ranking', version: '5.1.0', owner: 'Leo', target: '2026-12-16', checklist: [
+  { id: 'r-139', name: 'Search ranking', version: '5.1.0', owner: 'Leo', blocked: true, target: '2026-12-16', checklist: [
     { id: 'c1', text: 'Offline evaluation', done: true },
     { id: 'c2', text: 'A/B test plan', done: false },
   ] },

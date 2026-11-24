@@ -1,7 +1,7 @@
 import { activity, releases } from './data.mjs';
 import { formatActivity } from './activity.mjs';
 import { paginate } from './paginate.mjs';
-import { sortByTarget, summarize } from './releases.mjs';
+import { sortReleases, summarize } from './releases.mjs';
 
 const json = (status, body) => ({ status, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
@@ -12,7 +12,7 @@ export function handle(method, url, today = new Date()) {
     const page = Number(searchParams.get('page') ?? 1);
     const query = (searchParams.get('q') ?? '').trim().toLowerCase();
     const matches = releases.filter((r) => !query || `${r.name} ${r.owner}`.toLowerCase().includes(query));
-    const list = sortByTarget(matches).map((r) => summarize(r, today));
+    const list = sortReleases(matches).map((r) => summarize(r, today));
     return json(200, paginate(list, page));
   }
   const match = pathname.match(/^\/api\/releases\/([\w-]+)$/);
